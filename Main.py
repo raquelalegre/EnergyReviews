@@ -2,7 +2,7 @@ import energy_reviews
 
 def main():
    client = energy_reviews.TwitterClient
-   #query = energy_review.TwitterQuery
+   query = energy_reviews.TwitterQuery
    #query = energy_review.TwitterQuery.set_q("edfenergy")
    #tweets = client.get_tweets(query)
    #for tweet in tweets:
