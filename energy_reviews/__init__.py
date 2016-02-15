@@ -1,2 +1,2 @@
-import TwitterClient
-import TwitterQuery
+from TwitterClient import TwitterClient
+from TwitterQuery import TwitterQuery

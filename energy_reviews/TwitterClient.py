@@ -1,6 +1,9 @@
 import json
 import urllib2
-import QueryBuilder
+from QueryBuilder import QueryBuilder
+from pyquery import PyQuery
+from Tweet import Tweet
+import datetime
 
 """
 Represents a client that connects to Twitter to retrieve tweets based on a
@@ -30,18 +33,23 @@ class TwitterClient:
         Returns:
             json: total query results in JSON format.
         """
-        tweets = {}
-
         min_position = ''
+
+        tweets = []
 
         #Reload Twitter page results until we reach number of desired tweets
         while len(tweets) < twitterQuery.count:
-            response = _send_request(twitterQuery)
-            tweets = json.loads(response)
+            print "len(tweets) = " + str(len(tweets))
+            print "twitterQuery.count = " + str(twitterQuery.count)
+            response = self._send_request(twitterQuery)
+            tweets.extend(self._parse_tweets(response))
 
-            #Update Twitter Query with min/max positions
-            min_position = tweets['min_position']
-            twitterQuery.update(max_position=min_position)
+            if len(self._parse_tweets(response)) == 0:
+                return tweets
+            else:
+                #Update Twitter Query with min/max positions
+                min_position = response['min_position']
+                twitterQuery.update(max_position=min_position)
 
         return tweets
 
@@ -59,14 +67,41 @@ class TwitterClient:
         builder = QueryBuilder(twitterQuery)
         url = builder.get_url()
 
-        headers =
+        headers = \
             {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3)'}
 
         request = urllib2.Request(url, headers = headers)
 
         response = urllib2.urlopen(request).read()
 
-        return response
+        response_json = json.loads(response)
+
+        return response_json
+
+    def _parse_tweets(self, response):
+        """
+        Twitter's response is a json object containing an html page where the
+        tweets are listed.
+        """
+        tweets = []
+        print response
+        if response['items_html'] != u'\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n':
+            tweet_html_list = PyQuery(response['items_html'])('div.js-stream-tweet')
+
+            for tweet_html in tweet_html_list:
+                pq = PyQuery(tweet_html)
+                tweet = Tweet()
+                tweet.username = pq('span.username.js-action-profile-name b').text()
+                tweet.message = pq('p.js-tweet-text').text()
+                tweet.created_at = datetime.datetime.fromtimestamp(int(pq('small.time span.js-short-timestamp').attr('data-time')))
+                tweet.id = pq.attr('data-tweet-id')
+                tweet.permalink = 'https://twitter.com' + pq.attr('data-permalink-path')
+                tweet.location = pq('span.Tweet-geo')
+                tweets.append(tweet)
+                tweet.pretty_print()
+
+        return tweets
+
 
     #def _pretty_print(tweet):
     #    """
