@@ -17,7 +17,7 @@ class TestTwitterClient(TestCase):
     def test_get_tweet_by_id(self):
         id = 541907082673655808
         text = u'i appear to be crushing on an energy company...  http://t.co/5kE94mrVju go @tempusenergy'
-        client = TwitterClient()
-        tweet = client.api.get_status(id)
+        api = self.client.api
+        tweet = api.get_status(id)
         print tweet.text
         assert tweet.text == text
