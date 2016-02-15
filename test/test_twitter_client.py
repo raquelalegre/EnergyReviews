@@ -5,19 +5,25 @@ from energy_reviews.model import Tweet
 
 class TestTwitterClient(TestCase):
 
-    def setup(self):
+    #TODO: Doesn't work - how to make it so that it's called before the test?
+    def setup_module(self):
         """
         Initialize Twitter client.
         """
         self.client = TwitterClient()
 
-    def teardown(self):
+    def teardown_module(self):
         pass
+
+    def test_api(self):
+        client = TwitterClient()
+        api = client.api
+        assert api.host == 'api.twitter.com'
 
     def test_get_tweet_by_id(self):
         id = 541907082673655808
         text = u'i appear to be crushing on an energy company...  http://t.co/5kE94mrVju go @tempusenergy'
-        api = self.client.api
-        tweet = api.get_status(id)
+        client = TwitterClient()
+        tweet = client.api.get_status(id)
         print tweet.text
         assert tweet.text == text
